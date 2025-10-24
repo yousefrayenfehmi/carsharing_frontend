@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "FITARIKI",
+    "slug": "covoiturage-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/fitriqi.png",
+    "scheme": "covoiturage-app",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Cette application a besoin de votre localisation pour vous suggérer des trajets à proximité.",
+        "NSLocationAlwaysUsageDescription": "Cette application a besoin de votre localisation pour vous suggérer des trajets à proximité.",
+        "NSPhotoLibraryUsageDescription": "Cette application a besoin d'accéder à vos photos pour définir votre photo de profil.",
+        "NSCameraUsageDescription": "Cette application a besoin d'accéder à votre caméra pour prendre une photo de profil.",
+        "NSPhotoLibraryAddUsageDescription": "Cette application a besoin de sauvegarder des photos dans votre bibliothèque.",
+        "NSUserTrackingUsageDescription": "Ces données nous aident à améliorer votre expérience et à personnaliser le contenu."
+      },
+      "bundleIdentifier": "com.fitariki.covoiturage"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/fitriqi.png"
+      },
+      "edgeToEdgeEnabled": false,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.fitariki.covoiturage",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
+      ],
+      "googleServicesFile": "./google-services.json",
+      "useNextNotificationsApi": true
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/fitriqi.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/fitriqi.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": {
+            "backgroundColor": "#000000"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6d6546c5-fae9-436f-9370-5145b035358d"
+      }
+    }
+  }
+}
