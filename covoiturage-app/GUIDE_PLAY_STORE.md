@@ -10,7 +10,7 @@
 
 Votre configuration actuelle :
 - **Nom** : FITARIKI
-- **Package** : `com.covoiturage.app`
+- **Package** : `com.fitariki.covoiturage`
 - **Version** : 1.0.0
 - **Version Code** : 1
 

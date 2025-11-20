@@ -288,6 +288,7 @@ export default function PublishScreen() {
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
           {/* En-tête */}
           <View style={styles.pageHeader}>

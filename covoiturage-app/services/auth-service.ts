@@ -59,6 +59,7 @@ export const authService = {
    * Inscription avec email et mot de passe
    */
   async signup(credentials: SignupCredentials): Promise<AuthResponse> {
+    console.log('credentials1', credentials);
     const response = await api.post('/auth/signup', credentials);
     const { user, token, refreshToken } = response.data.data;
     

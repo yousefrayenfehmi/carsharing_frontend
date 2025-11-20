@@ -56,9 +56,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const profile = await authService.getProfile();
           setUser(profile);
-        } catch (err) {
-          // Si erreur (token expiré), garder l'utilisateur en cache
-          console.log('Impossible de rafraîchir le profil:', err);
+        } catch (err: any) {
+          // Si erreur (token expiré ou problème réseau), garder l'utilisateur en cache
+          console.log('⚠️ Impossible de rafraîchir le profil:', {
+            message: err?.message,
+            code: err?.code,
+            response: err?.response?.status,
+          });
+          // Ne pas déconnecter l'utilisateur si c'est juste un problème réseau
+          // L'utilisateur pourra toujours utiliser l'app avec les données en cache
         }
       }
     } catch (error) {
@@ -98,8 +104,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signup = async (credentials: SignupCredentials): Promise<User> => {
     try {
       setIsLoading(true);
+      console.log('credentials', credentials);
+      console.log('email1', credentials.email);
+      console.log('password', credentials.password);
+      console.log('firstName', credentials.firstName);
+      console.log('lastName', credentials.lastName);
+      console.log('wilaya', credentials.wilaya);
+      console.log('phoneNumber', credentials.phoneNumber);
       const { user: userData } = await authService.signup(credentials);
-      setUser(userData);
+      if (userData) {
+        setUser(userData);
+      }
+      if (!userData) {
+        throw new Error('Utilisateur non trouvé');
+      }
       return userData;
     } catch (error) {
       console.error('Erreur lors de l\'inscription:', error);

@@ -54,7 +54,10 @@ export default function AdminLogin() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <Ionicons name="shield-checkmark" size={60} color={Colors.primary} />

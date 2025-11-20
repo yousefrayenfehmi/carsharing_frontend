@@ -12,11 +12,14 @@ import { API_URL } from '../config';
  */
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 10000,
+  timeout: 30000, // 30 secondes - augmenté pour éviter les timeouts sur iOS
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Log de l'URL de base pour débogage
+console.log('🔗 API Base URL configurée:', API_URL);
 
 /**
  * Intercepteur pour ajouter le token JWT à chaque requête
@@ -54,6 +57,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Log détaillé pour débogage
+    console.error('❌ Erreur API:', {
+      message: error.message,
+      code: error.code,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      fullURL: error.config?.baseURL + error.config?.url,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+    });
+    
     // Token expiré ou invalide
     if (error.response?.status === 401) {
       // Supprimer le token et rediriger vers login de manière sécurisée

@@ -17,7 +17,9 @@ import {
     TouchableOpacity,
     View,
     Image,
-    ActivityIndicator
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { userService } from '@/services/user-service';
@@ -98,7 +100,8 @@ export default function ProfileScreen() {
       setShowEditModal(false);
       showAlertSuccess('Succès', 'Votre profil a été mis à jour');
     } catch (error: any) {
-      showAlertError('Erreur', error.message || 'Une erreur est survenue lors de la mise à jour du profil');
+      const errorMessage = getUserFriendlyErrorMessage(error);
+      showAlertError('Erreur', errorMessage);
     }
   };
 
@@ -532,7 +535,10 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Prénom</Text>
                 <TextInput

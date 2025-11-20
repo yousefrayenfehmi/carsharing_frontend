@@ -52,15 +52,9 @@ export default function SignupScreen() {
             <Text style={styles.legalLink}>Politique de confidentialité</Text>. Les informations
             collectées par COMUTO SA sont traitées dans le but de créer de votre compte, gérer
             votre réservation, l&apos;utilisation et l&apos;amélioration de nos services et pour assurer la
-            sécurité de notre plateforme. Vous avez des droits concernant vos données personnelles
-            et vous pouvez les exercer en contactant BlaBlaCar par le biais de notre{' '}
-            <Text style={styles.legalLink}>Formulaire de contact</Text>. Vous pouvez en apprendre
+            sécurité de notre plateforme. Vous pouvez en apprendre
             davantage sur vos droits et la manière dont nous traitons vos données personnelles dans
             notre <Text style={styles.legalLink}>Politique de confidentialité</Text>.
-          </Text>
-          <Text style={styles.legalText}>
-            {'\n'}Vous pouvez modifier vos{' '}
-            <Text style={styles.legalLink}>Paramètres des cookies</Text> à tout moment.
           </Text>
         </View>
       </ScrollView>

@@ -8,17 +8,26 @@
       "distribution": "internal",
       "android": {
         "gradleCommand": ":app:assembleDebug"
+      },
+      "ios": {
+        "simulator": true
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "production": {
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
       }
     },
     "production-aab": {
@@ -28,6 +37,15 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./service-account-key.json"
+      },
+      "ios": {
+        "appleId": "admin@lowxy.fr",
+        "ascAppId": "6754519037",
+        "appleTeamId": "5KGLPRWSFB"
+      }
+    }
   }
 }

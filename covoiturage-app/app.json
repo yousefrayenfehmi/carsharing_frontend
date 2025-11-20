@@ -10,14 +10,17 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "1",
+      "buildNumber": "6",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin de votre localisation pour vous suggérer des trajets à proximité.",
         "NSLocationAlwaysUsageDescription": "Cette application a besoin de votre localisation pour vous suggérer des trajets à proximité.",
         "NSPhotoLibraryUsageDescription": "Cette application a besoin d'accéder à vos photos pour définir votre photo de profil.",
         "NSCameraUsageDescription": "Cette application a besoin d'accéder à votre caméra pour prendre une photo de profil.",
         "NSPhotoLibraryAddUsageDescription": "Cette application a besoin de sauvegarder des photos dans votre bibliothèque.",
-        "NSUserTrackingUsageDescription": "Ces données nous aident à améliorer votre expérience et à personnaliser le contenu."
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
       },
       "bundleIdentifier": "com.fitariki.covoiturage"
     },
@@ -41,7 +44,6 @@
         "WRITE_EXTERNAL_STORAGE",
         "CAMERA"
       ],
-      "googleServicesFile": "./google-services.json",
       "useNextNotificationsApi": true
     },
     "web": {
@@ -59,6 +61,21 @@
           "backgroundColor": "#ffffff",
           "dark": {
             "backgroundColor": "#000000"
+          }
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          },
+          "ios": {
+            "infoPlist": {
+              "NSAppTransportSecurity": {
+                "NSAllowsArbitraryLoads": true
+              }
+            }
           }
         }
       ]

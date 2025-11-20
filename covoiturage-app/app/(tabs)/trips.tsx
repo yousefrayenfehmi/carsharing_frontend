@@ -743,9 +743,12 @@ const styles = StyleSheet.create({
   },
   primaryActions: {
     flexDirection: 'row',
+    flexWrap: 'wrap', // permet aux boutons de passer sur 2 lignes sur petits écrans
     gap: 8,
   },
   negotiationsButton: {
+    flex: 1,
+    minWidth: '32%', // 3 colonnes max
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -758,8 +761,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
+    textAlign: 'center',
+    flexShrink: 1, // le texte peut se compacter sur 2 lignes
   },
   bookingsButton: {
+    flex: 1,
+    minWidth: '32%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -772,8 +779,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   detailsButton: {
+    flex: 1,
+    minWidth: '32%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -787,6 +798,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   actionButtonsRow: {
     flexDirection: 'row',

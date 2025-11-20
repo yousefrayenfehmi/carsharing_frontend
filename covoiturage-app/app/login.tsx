@@ -8,6 +8,8 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -44,11 +46,19 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header avec bouton retour */}
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Header avec bouton retour */}
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
 
         {/* Logo */}
         <View style={styles.logoContainer}>
@@ -125,7 +135,8 @@ export default function LoginScreen() {
             <Text style={styles.signupLink}>S&apos;inscrire</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
       <Toast
         visible={toast.visible}
         message={toast.message}
@@ -140,6 +151,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
