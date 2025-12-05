@@ -48,13 +48,29 @@ export default function SignupScreen() {
         <View style={styles.legalContainer}>
           <Text style={styles.legalText}>
             En vous inscrivant, vous acceptez nos{' '}
-            <Text style={styles.legalLink}>Conditions générales</Text> et notre{' '}
-            <Text style={styles.legalLink}>Politique de confidentialité</Text>. Les informations
-            collectées par COMUTO SA sont traitées dans le but de créer de votre compte, gérer
+            <Text 
+              style={styles.legalLink}
+              onPress={() => router.push('/terms-of-service')}
+            >
+              Conditions générales
+            </Text> et notre{' '}
+            <Text 
+              style={styles.legalLink}
+              onPress={() => router.push('/privacy-policy')}
+            >
+              Politique de confidentialité
+            </Text>. Les informations
+            collectées par FITARIKI sont traitées dans le but de créer votre compte, gérer
             votre réservation, l&apos;utilisation et l&apos;amélioration de nos services et pour assurer la
             sécurité de notre plateforme. Vous pouvez en apprendre
             davantage sur vos droits et la manière dont nous traitons vos données personnelles dans
-            notre <Text style={styles.legalLink}>Politique de confidentialité</Text>.
+            notre{' '}
+            <Text 
+              style={styles.legalLink}
+              onPress={() => router.push('/privacy-policy')}
+            >
+              Politique de confidentialité
+            </Text>.
           </Text>
         </View>
       </ScrollView>

@@ -8,7 +8,8 @@ export const signupValidator = [
   body('email')
     .isEmail()
     .withMessage('Email invalide')
-    .normalizeEmail(),
+    .trim()
+    .toLowerCase(),
   body('password')
     .isLength({ min: 6 })
     .withMessage('Le mot de passe doit contenir au moins 6 caractères'),

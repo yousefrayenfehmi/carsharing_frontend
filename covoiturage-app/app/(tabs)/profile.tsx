@@ -9,23 +9,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    Image,
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Image,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { userService } from '@/services/user-service';
 import { authService } from '@/services/auth-service';
-import { WilayaPicker } from '@/components/wilaya-picker';
-import { Wilaya, getWilayaByName } from '@/constants/algerian-wilayas';
+import { GooglePlacesInput } from '@/components/google-places-input';
 
 export default function ProfileScreen() {
   const { user, isAuthenticated, logout, updateUser, refreshProfile } = useAuth();
@@ -40,8 +39,15 @@ export default function ProfileScreen() {
   const [verificationCode, setVerificationCode] = useState('');
   const [sendingCode, setSendingCode] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [showWilayaPicker, setShowWilayaPicker] = useState(false);
-  const [selectedWilaya, setSelectedWilaya] = useState<Wilaya | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    name: string;
+    address: string;
+    city: string;
+    wilaya?: string;
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationDisplay, setLocationDisplay] = useState(user?.wilaya || '');
   const [editForm, setEditForm] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -81,7 +87,7 @@ export default function ProfileScreen() {
         phoneNumber: editForm.phoneNumber,
         cin: editForm.cin,
         driverLicenseNumber: editForm.driverLicenseNumber,
-        wilaya: selectedWilaya?.name,
+        wilaya: selectedLocation?.wilaya || selectedLocation?.city || locationDisplay,
       };
 
       // Ajouter les informations du véhicule si remplies
@@ -100,8 +106,7 @@ export default function ProfileScreen() {
       setShowEditModal(false);
       showAlertSuccess('Succès', 'Votre profil a été mis à jour');
     } catch (error: any) {
-      const errorMessage = getUserFriendlyErrorMessage(error);
-      showAlertError('Erreur', errorMessage);
+      showAlertError('Erreur', error.message || 'Une erreur est survenue lors de la mise à jour du profil');
     }
   };
 
@@ -118,20 +123,15 @@ export default function ProfileScreen() {
       vehicleColor: user?.vehicle?.color || '',
       vehicleLicensePlate: user?.vehicle?.licensePlate || '',
     });
-    // Initialiser la wilaya sélectionnée
-    if (user?.wilaya) {
-      const wilaya = getWilayaByName(user.wilaya);
-      setSelectedWilaya(wilaya || null);
-    } else {
-      setSelectedWilaya(null);
-    }
+    // Initialiser la localisation avec la wilaya existante
+    setLocationDisplay(user?.wilaya || '');
     setShowEditModal(true);
   };
 
   const handleTakePhoto = async () => {
     try {
       const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-      
+
       if (permissionResult.granted === false) {
         showWarning('Vous devez autoriser l\'accès à la caméra');
         return;
@@ -157,7 +157,7 @@ export default function ProfileScreen() {
   const handleChooseFromGallery = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (permissionResult.granted === false) {
         showWarning('Vous devez autoriser l\'accès à la galerie');
         return;
@@ -183,10 +183,10 @@ export default function ProfileScreen() {
 
   const handleConfirmPhoto = async () => {
     if (!selectedImageUri) return;
-    
+
     setShowImagePreview(false);
     setUploadingPhoto(true);
-    
+
     try {
       await userService.uploadProfilePicture(selectedImageUri);
       await refreshProfile();
@@ -249,7 +249,7 @@ export default function ProfileScreen() {
           <View style={styles.notAuthIcon}>
             <Ionicons name="person-circle-outline" size={120} color={Colors.border.medium} />
           </View>
-          
+
           <Text style={styles.notAuthTitle}>Vous n'êtes pas connecté</Text>
           <Text style={styles.notAuthSubtitle}>
             Connectez-vous pour accéder à votre profil et gérer vos trajets
@@ -276,7 +276,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -299,7 +299,7 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             )}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.editAvatarButton}
               onPress={() => setShowImagePickerModal(true)}
               disabled={uploadingPhoto}
@@ -321,7 +321,7 @@ export default function ProfileScreen() {
               <Ionicons name="create-outline" size={18} color={Colors.primary} />
               <Text style={styles.editProfileText}>Modifier le profil</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={styles.negotiationsButton}
               onPress={() => router.push('/negotiations' as any)}
@@ -361,7 +361,7 @@ export default function ProfileScreen() {
                       <Text style={styles.verifiedText}>Vérifié</Text>
                     </View>
                   ) : (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.verifyButton}
                       onPress={handleVerifyEmail}
                     >
@@ -459,8 +459,8 @@ export default function ProfileScreen() {
               <View style={styles.infoContent}>
                 <Text style={styles.infoLabel}>Marque et Modèle</Text>
                 <Text style={styles.infoValue}>
-                  {user?.vehicle?.brand && user?.vehicle?.model 
-                    ? `${user.vehicle.brand} ${user.vehicle.model}` 
+                  {user?.vehicle?.brand && user?.vehicle?.model
+                    ? `${user.vehicle.brand} ${user.vehicle.model}`
                     : 'Non renseigné'}
                 </Text>
               </View>
@@ -510,6 +510,41 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Section Paramètres et Confidentialité */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Paramètres et Confidentialité</Text>
+
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/terms-of-service' as any)}
+            >
+              <View style={styles.menuIcon}>
+                <Ionicons name="document-text-outline" size={20} color={Colors.text.secondary} />
+              </View>
+              <Text style={styles.menuText}>Conditions générales d'utilisation</Text>
+              <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/privacy-policy' as any)}
+            >
+              <View style={styles.menuIcon}>
+                <Ionicons name="shield-checkmark-outline" size={20} color={Colors.text.secondary} />
+              </View>
+              <Text style={styles.menuText}>Politique de confidentialité</Text>
+              <Ionicons name="chevron-forward" size={20} color={Colors.text.secondary} />
+            </TouchableOpacity>
+
+            <View style={styles.separator} />
+
+
+          </View>
+        </View>
+
         {/* Bouton de déconnexion */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={22} color={Colors.error} />
@@ -535,7 +570,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView 
+            <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
@@ -577,16 +612,18 @@ export default function ProfileScreen() {
               </View>
 
               <View style={styles.formGroup}>
-                <Text style={styles.label}>Wilaya</Text>
-                <TouchableOpacity
-                  style={styles.pickerButton}
-                  onPress={() => setShowWilayaPicker(true)}
-                >
-                  <Text style={[styles.pickerText, !selectedWilaya && styles.pickerPlaceholder]}>
-                    {selectedWilaya ? `${selectedWilaya.code} - ${selectedWilaya.name}` : 'Sélectionnez votre wilaya'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={24} color="#6D7175" />
-                </TouchableOpacity>
+                <GooglePlacesInput
+                  value={locationDisplay}
+                  onPlaceSelect={(place) => {
+                    setSelectedLocation(place);
+                    setLocationDisplay(place.wilaya || place.city);
+                  }}
+                  label="Ville / Wilaya"
+                  placeholder="Rechercher votre ville..."
+                  icon="location"
+                  searchType="cities"
+                  useModal={true}
+                />
               </View>
 
               <View style={styles.formGroup}>
@@ -736,14 +773,6 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Modal>
-
-      {/* Modal de sélection de wilaya */}
-      <WilayaPicker
-        visible={showWilayaPicker}
-        onClose={() => setShowWilayaPicker(false)}
-        onSelect={(wilaya) => setSelectedWilaya(wilaya)}
-        selectedWilaya={selectedWilaya?.name}
-      />
 
       {/* Modal de sélection de la source de la photo */}
       <Modal
@@ -953,10 +982,12 @@ const styles = StyleSheet.create({
   },
   profileActions: {
     flexDirection: 'row',
-    gap: 12,
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'space-between',
   },
   editProfileButton: {
-    flex: 1,
+    flexBasis: '48%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -973,7 +1004,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   negotiationsButton: {
-    flex: 1,
+    flexBasis: '48%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -989,7 +1020,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   bookingsButton: {
-    flex: 1,
+    flexBasis: '48%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

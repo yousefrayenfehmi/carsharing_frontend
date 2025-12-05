@@ -32,7 +32,7 @@
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
       "package": "com.fitariki.covoiturage",
-      "versionCode": 1,
+      "versionCode": 2,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
@@ -42,7 +42,8 @@
         "ACCESS_NETWORK_STATE",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "CAMERA"
+        "CAMERA",
+        "POST_NOTIFICATIONS"
       ],
       "useNextNotificationsApi": true
     },
@@ -62,6 +63,14 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/fitriqi.png",
+          "color": "#3B82F6",
+          "mode": "production"
         }
       ],
       [
@@ -88,7 +97,8 @@
       "router": {},
       "eas": {
         "projectId": "6d6546c5-fae9-436f-9370-5145b035358d"
-      }
+      },
+      "googleMapsApiKey": "AIzaSyDOumUf4rWVqfBCtBagNH015oFsm3_oab0"
     }
   }
 }

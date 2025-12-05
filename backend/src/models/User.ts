@@ -66,7 +66,7 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Email invalide'],
+      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email invalide'],
     },
     password: {
       type: String,

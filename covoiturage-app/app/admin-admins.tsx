@@ -10,14 +10,15 @@ import {
   Modal,
   RefreshControl,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAlert } from '@/contexts/alert-context';
 import { Ionicons } from '@expo/vector-icons';
 import { adminService, Admin } from '../services/admin.service';
 import { Colors } from '../constants/colors';
-import { WilayaPicker } from '../components/wilaya-picker';
-import { Wilaya } from '../constants/algerian-wilayas';
+import { GooglePlacesInput } from '../components/google-places-input';
 
 export default function AdminAdmins() {
   const router = useRouter();
@@ -29,8 +30,15 @@ export default function AdminAdmins() {
   const [blockModalVisible, setBlockModalVisible] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | null>(null);
   const [blockReason, setBlockReason] = useState('');
-  const [showWilayaPicker, setShowWilayaPicker] = useState(false);
-  const [selectedWilaya, setSelectedWilaya] = useState<Wilaya | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<{
+    name: string;
+    address: string;
+    city: string;
+    wilaya?: string;
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationDisplay, setLocationDisplay] = useState('');
 
   // Champs pour créer un admin
   const [email, setEmail] = useState('');
@@ -62,7 +70,7 @@ export default function AdminAdmins() {
     }
 
     // Pour les admins (non super_admin), la wilaya est optionnelle mais recommandée
-    if (role === 'admin' && !selectedWilaya) {
+    if (role === 'admin' && !selectedLocation) {
       Alert.alert(
         'Confirmation',
         'Voulez-vous créer cet administrateur sans wilaya assignée ?',
@@ -85,7 +93,7 @@ export default function AdminAdmins() {
         firstName, 
         lastName, 
         role,
-        wilaya: selectedWilaya?.name
+        wilaya: selectedLocation?.wilaya || selectedLocation?.city
       });
       setCreateModalVisible(false);
       Alert.alert('Succès', 'Administrateur créé avec succès');
@@ -267,10 +275,19 @@ export default function AdminAdmins() {
         onRequestClose={() => setCreateModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Créer un administrateur</Text>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Créer un administrateur</Text>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+              <ScrollView 
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled={true}
+                contentContainerStyle={styles.scrollContent}
+              >
               <TextInput
                 style={styles.modalInput}
                 placeholder="Prénom"
@@ -303,28 +320,22 @@ export default function AdminAdmins() {
                 secureTextEntry
               />
 
-              <View style={styles.wilayaContainer}>
+              <View style={styles.wilayaInputWrapper}>
                 <Text style={styles.wilayaLabel}>
                   Wilaya de gestion {role === 'admin' ? '(Optionnel)' : ''}
                 </Text>
-                <TouchableOpacity
-                  style={styles.wilayaButton}
-                  onPress={() => setShowWilayaPicker(true)}
-                  activeOpacity={0.7}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                    <Ionicons 
-                      name="location" 
-                      size={22} 
-                      color={selectedWilaya ? '#007AFF' : '#9AA0A6'} 
-                      style={{ marginRight: 12 }}
-                    />
-                    <Text style={[styles.wilayaButtonText, !selectedWilaya && styles.wilayaPlaceholder]}>
-                      {selectedWilaya ? `${selectedWilaya.code} - ${selectedWilaya.name}` : 'Choisir une wilaya'}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-down" size={22} color="#007AFF" />
-                </TouchableOpacity>
+                <GooglePlacesInput
+                  value={locationDisplay}
+                  onPlaceSelect={(place) => {
+                    setSelectedLocation(place);
+                    setLocationDisplay(place.wilaya || place.city);
+                  }}
+                  label=""
+                  placeholder="Ex: Alger, Oran..."
+                  icon="location"
+                  searchType="cities"
+                  useModal={false}
+                />
               </View>
 
               <View style={styles.roleSelector}>
@@ -354,6 +365,7 @@ export default function AdminAdmins() {
               </View>
             </ScrollView>
           </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
@@ -365,48 +377,46 @@ export default function AdminAdmins() {
         onRequestClose={() => setBlockModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Bloquer l'administrateur</Text>
-            <Text style={styles.modalSubtitle}>
-              {String(selectedAdmin?.firstName)} {String(selectedAdmin?.lastName)}
-            </Text>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Bloquer l'administrateur</Text>
+              <Text style={styles.modalSubtitle}>
+                {String(selectedAdmin?.firstName)} {String(selectedAdmin?.lastName)}
+              </Text>
 
-            <TextInput
-              style={[styles.modalInput, styles.textArea]}
-              placeholder="Raison du blocage..."
-              placeholderTextColor={Colors.text.light}
-              value={blockReason}
-              onChangeText={setBlockReason}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
+              <TextInput
+                style={[styles.modalInput, styles.textArea]}
+                placeholder="Raison du blocage..."
+                placeholderTextColor={Colors.text.light}
+                value={blockReason}
+                onChangeText={setBlockReason}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setBlockModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Annuler</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
-                onPress={confirmBlockAdmin}
-              >
-                <Text style={styles.confirmButtonText}>Bloquer</Text>
-              </TouchableOpacity>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setBlockModalVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
+                  onPress={confirmBlockAdmin}
+                >
+                  <Text style={styles.confirmButtonText}>Bloquer</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
 
-      {/* Modal de sélection de wilaya */}
-      <WilayaPicker
-        visible={showWilayaPicker}
-        onClose={() => setShowWilayaPicker(false)}
-        onSelect={(wilaya) => setSelectedWilaya(wilaya)}
-        selectedWilaya={selectedWilaya?.name}
-      />
     </View>
   );
 }
@@ -415,6 +425,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -571,6 +584,9 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
+  scrollContent: {
+    paddingBottom: 20,
+  },
   modalTitle: {
     fontSize: 24,
     fontWeight: '800',
@@ -691,9 +707,14 @@ const styles = StyleSheet.create({
   wilayaContainer: {
     marginBottom: 16,
   },
+  wilayaInputWrapper: {
+    marginBottom: 16,
+  },
   wilayaLabel: {
     fontSize: 14,
-    color: '#5F6368',
+    fontWeight: '600',
+    color: '#1A1A2E',
+    marginBottom: 8,
     marginBottom: 10,
     fontWeight: '600',
     letterSpacing: 0.3,

@@ -364,28 +364,7 @@ export const completeTrip = asyncHandler(
       $inc: { tripsAsDriver: 1 },
     });
 
-    // 📱 Envoyer une notification à tous les passagers
-    if (confirmedBookings.length > 0) {
-      const tripDetails = `${trip.departure.city} → ${trip.destination.city}`;
-      
-      // Importer le service de notification dynamiquement
-      const { notifyTripCompleted } = await import('../services/notification.service');
-      
-      // Envoyer une notification à chaque passager
-      for (const booking of confirmedBookings) {
-        try {
-          await notifyTripCompleted(
-            booking.passenger,
-            tripDetails,
-            trip._id as any // tripId
-          );
-          console.log(`📱 Notification de trajet terminé envoyée au passager ${booking.passenger}`);
-        } catch (error) {
-          console.error(`❌ Erreur lors de l'envoi de la notification au passager ${booking.passenger}:`, error);
-        }
-      }
-    }
-
+    // Envoyer la réponse immédiatement au client
     const response: SuccessResponse = {
       success: true,
       data: trip,
@@ -393,6 +372,36 @@ export const completeTrip = asyncHandler(
     };
 
     res.status(200).json(response);
+
+    // 📱 Envoyer les notifications en arrière-plan (après la réponse)
+    // Cela évite les timeouts sur iOS
+    if (confirmedBookings.length > 0) {
+      const tripDetails = `${trip.departure.city} → ${trip.destination.city}`;
+      
+      // Utiliser setImmediate pour exécuter en arrière-plan
+      setImmediate(async () => {
+        try {
+          // Importer le service de notification dynamiquement
+          const { notifyTripCompleted } = await import('../services/notification.service');
+          
+          // Envoyer une notification à chaque passager
+          for (const booking of confirmedBookings) {
+            try {
+              await notifyTripCompleted(
+                booking.passenger,
+                tripDetails,
+                trip._id as any // tripId
+              );
+              console.log(`📱 Notification de trajet terminé envoyée au passager ${booking.passenger}`);
+            } catch (error) {
+              console.error(`❌ Erreur lors de l'envoi de la notification au passager ${booking.passenger}:`, error);
+            }
+          }
+        } catch (error) {
+          console.error('❌ Erreur lors de l\'import du service de notification:', error);
+        }
+      });
+    }
   }
 );
 

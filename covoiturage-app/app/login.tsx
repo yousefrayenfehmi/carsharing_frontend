@@ -135,6 +135,17 @@ export default function LoginScreen() {
             <Text style={styles.signupLink}>S&apos;inscrire</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Liens légaux */}
+        <View style={styles.legalLinks}>
+          <TouchableOpacity onPress={() => router.push('/terms-of-service')}>
+            <Text style={styles.legalLinkText}>Conditions générales</Text>
+          </TouchableOpacity>
+          <Text style={styles.legalSeparator}> • </Text>
+          <TouchableOpacity onPress={() => router.push('/privacy-policy')}>
+            <Text style={styles.legalLinkText}>Politique de confidentialité</Text>
+          </TouchableOpacity>
+        </View>
         </ScrollView>
       </KeyboardAvoidingView>
       <Toast
@@ -249,6 +260,22 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#00AFF5',
     fontWeight: '600',
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingHorizontal: 20,
+  },
+  legalLinkText: {
+    fontSize: 12,
+    color: '#6D7175',
+    textDecorationLine: 'underline',
+  },
+  legalSeparator: {
+    fontSize: 12,
+    color: '#6D7175',
   },
 });
 

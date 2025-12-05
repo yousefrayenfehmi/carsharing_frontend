@@ -1,5 +1,10 @@
 import { Colors } from '@/constants/colors';
-import { searchCityInAlgeria, GeocodingResult } from '@/services/geocoding-service';
+import { 
+  searchPlaces, 
+  getPlaceDetails, 
+  PlacePrediction,
+  isGoogleMapsConfigured 
+} from '@/services/google-maps-service';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
 import {
@@ -33,20 +38,21 @@ export const AddressInput: React.FC<AddressInputProps> = ({
   icon = 'location',
 }) => {
   const [query, setQuery] = useState(value);
-  const [suggestions, setSuggestions] = useState<GeocodingResult[]>([]);
+  const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [isConfigured] = useState(isGoogleMapsConfigured());
 
   useEffect(() => {
     if (query.length < 2) {
-      setSuggestions([]);
+      setPredictions([]);
       return;
     }
 
     const timeoutId = setTimeout(() => {
       searchAddresses(query);
-    }, 500); // Debounce de 500ms
+    }, 400); // Debounce de 400ms
 
     return () => clearTimeout(timeoutId);
   }, [query]);
@@ -54,32 +60,45 @@ export const AddressInput: React.FC<AddressInputProps> = ({
   const searchAddresses = async (searchQuery: string) => {
     setIsLoading(true);
     try {
-      const results = await searchCityInAlgeria(searchQuery);
-      setSuggestions(results);
+      const results = await searchPlaces(searchQuery, {
+        countryRestriction: 'dz',
+      });
+      setPredictions(results);
       setShowSuggestions(true);
     } catch (error) {
       console.error('Erreur recherche adresse:', error);
-      setSuggestions([]);
+      setPredictions([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSelectAddress = (result: GeocodingResult) => {
-    setQuery(result.displayName);
-    setShowSuggestions(false);
-    setIsFocused(false);
-    onAddressSelect({
-      fullAddress: result.displayName,
-      city: result.city,
-      latitude: result.latitude,
-      longitude: result.longitude,
-    });
+  const handleSelectAddress = async (prediction: PlacePrediction) => {
+    setIsLoading(true);
+    try {
+      const details = await getPlaceDetails(prediction.placeId);
+      
+      if (details) {
+        setQuery(prediction.mainText);
+        setShowSuggestions(false);
+        setIsFocused(false);
+        onAddressSelect({
+          fullAddress: details.formattedAddress,
+          city: details.city,
+          latitude: details.latitude,
+          longitude: details.longitude,
+        });
+      }
+    } catch (error) {
+      console.error('Erreur récupération détails:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const renderSuggestion = (item: GeocodingResult, index: number) => (
+  const renderSuggestion = (item: PlacePrediction, index: number) => (
     <Pressable
-      key={`${item.city}-${index}`}
+      key={item.placeId}
       style={({ pressed }) => [
         styles.suggestionItem,
         pressed && styles.suggestionItemPressed
@@ -88,9 +107,9 @@ export const AddressInput: React.FC<AddressInputProps> = ({
     >
       <Ionicons name="location-outline" size={20} color={Colors.primary} style={styles.suggestionIcon} />
       <View style={styles.suggestionContent}>
-        <Text style={styles.suggestionCity}>{item.city}</Text>
+        <Text style={styles.suggestionCity}>{item.mainText}</Text>
         <Text style={styles.suggestionAddress} numberOfLines={1}>
-          {item.displayName}
+          {item.secondaryText}
         </Text>
       </View>
     </Pressable>
@@ -111,7 +130,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({
           placeholderTextColor={Colors.text.secondary}
           onFocus={() => {
             setIsFocused(true);
-            if (suggestions.length > 0) {
+            if (predictions.length > 0) {
               setShowSuggestions(true);
             }
           }}
@@ -125,7 +144,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({
           <Pressable
             onPress={() => {
               setQuery('');
-              setSuggestions([]);
+              setPredictions([]);
               setShowSuggestions(false);
               setIsFocused(false);
             }}
@@ -136,7 +155,16 @@ export const AddressInput: React.FC<AddressInputProps> = ({
         )}
       </View>
 
-      {showSuggestions && suggestions.length > 0 && (
+      {!isConfigured && isFocused && (
+        <View style={styles.warningBanner}>
+          <Ionicons name="warning" size={16} color="#FFA000" />
+          <Text style={styles.warningText}>
+            Clé API Google Maps non configurée
+          </Text>
+        </View>
+      )}
+
+      {showSuggestions && predictions.length > 0 && (
         <View style={styles.suggestionsContainer}>
           <ScrollView
             style={styles.suggestionsList}
@@ -144,8 +172,11 @@ export const AddressInput: React.FC<AddressInputProps> = ({
             nestedScrollEnabled={true}
             showsVerticalScrollIndicator={true}
           >
-            {suggestions.map((item, index) => renderSuggestion(item, index))}
+            {predictions.map((item, index) => renderSuggestion(item, index))}
           </ScrollView>
+          <View style={styles.poweredBy}>
+            <Text style={styles.poweredByText}>Powered by Google</Text>
+          </View>
         </View>
       )}
     </View>
@@ -237,6 +268,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text.secondary,
     lineHeight: 18,
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    marginTop: 8,
+    padding: 8,
+    borderRadius: 6,
+  },
+  warningText: {
+    marginLeft: 6,
+    fontSize: 12,
+    color: '#F57C00',
+  },
+  poweredBy: {
+    alignItems: 'flex-end',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border.light,
+  },
+  poweredByText: {
+    fontSize: 10,
+    color: Colors.text.secondary,
   },
 });
 

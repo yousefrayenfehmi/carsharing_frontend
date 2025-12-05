@@ -1,7 +1,6 @@
+import { GooglePlacesInput } from '@/components/google-places-input';
 import { Logo } from '@/components/logo';
 import { Toast } from '@/components/toast';
-import { WilayaPicker } from '@/components/wilaya-picker';
-import { Wilaya } from '@/constants/algerian-wilayas';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { getUserFriendlyErrorMessage } from '@/utils/error-messages';
@@ -29,8 +28,15 @@ export default function EmailSignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [wilaya, setWilaya] = useState<Wilaya | null>(null);
-  const [showWilayaPicker, setShowWilayaPicker] = useState(false);
+  const [location, setLocation] = useState<{
+    name: string;
+    address: string;
+    city: string;
+    wilaya?: string;
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationDisplay, setLocationDisplay] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -39,14 +45,14 @@ export default function EmailSignupScreen() {
     console.log('password', password);
     console.log('firstName', firstName);
     console.log('lastName', lastName);
-    console.log('wilaya', wilaya?.name);
+    console.log('location', location);
     try {
       await signup({
         email,
         password,
         firstName,
         lastName,
-        wilaya: wilaya?.name,
+        wilaya: location?.wilaya || location?.city,
       });
       router.replace('/(tabs)');
     } catch (error: any) {
@@ -61,7 +67,7 @@ export default function EmailSignupScreen() {
     confirmPassword &&
     firstName &&
     lastName &&
-    wilaya &&
+    location &&
     password === confirmPassword &&
     password.length >= 8;
 
@@ -114,16 +120,18 @@ export default function EmailSignupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Wilaya</Text>
-            <TouchableOpacity
-              style={styles.pickerButton}
-              onPress={() => setShowWilayaPicker(true)}
-            >
-              <Text style={[styles.pickerText, !wilaya && styles.pickerPlaceholder]}>
-                {wilaya ? `${wilaya.code} - ${wilaya.name}` : 'Sélectionnez votre wilaya'}
-              </Text>
-              <Ionicons name="chevron-down" size={24} color="#6D7175" />
-            </TouchableOpacity>
+            <GooglePlacesInput
+              value={locationDisplay}
+              onPlaceSelect={(place) => {
+                setLocation(place);
+                setLocationDisplay(place.wilaya || place.city);
+              }}
+              label="Ville / Wilaya"
+              placeholder="Rechercher votre ville..."
+              icon="location"
+              searchType="cities"
+              useModal={true}
+            />
           </View>
 
           <View style={styles.inputContainer}>
@@ -226,13 +234,6 @@ export default function EmailSignupScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Modal de sélection de wilaya */}
-      <WilayaPicker
-        visible={showWilayaPicker}
-        onClose={() => setShowWilayaPicker(false)}
-        onSelect={(selectedWilaya) => setWilaya(selectedWilaya)}
-        selectedWilaya={wilaya?.name}
-      />
       <Toast
         visible={toast.visible}
         message={toast.message}

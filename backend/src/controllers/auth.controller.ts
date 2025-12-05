@@ -25,7 +25,12 @@ import {
 export const signup = asyncHandler(
   async (req: Request, res: Response, _next: NextFunction) => {
     const { email, password, firstName, lastName, phoneNumber, wilaya }: SignupCredentials = req.body;
-
+console.log('email', email);
+console.log('password', password);
+console.log('firstName', firstName);
+console.log('lastName', lastName);
+console.log('phoneNumber', phoneNumber);
+console.log('wilaya', wilaya);
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -42,7 +47,6 @@ export const signup = asyncHandler(
       wilaya,
       authProvider: 'email',
     });
-
     // Générer les tokens
     const accessToken = generateAccessToken({
       id: String(user._id),
@@ -145,7 +149,8 @@ export const login = asyncHandler(
 
     // Si ce n'est pas un admin, authentification utilisateur normale
     const user = await User.findOne({ email }).select('+password');
-    
+
+    console.log('user', user);
     if (!user) {
       throw ApiError.unauthorized('Email ou mot de passe incorrect');
     }

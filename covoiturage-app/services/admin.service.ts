@@ -66,7 +66,10 @@ class AdminService {
    * Changer le mot de passe admin
    */
   async changePassword(oldPassword: string, newPassword: string): Promise<void> {
-    await api.put('/admin/auth/change-password', { oldPassword, newPassword });
+    await api.put('/admin/auth/change-password', { 
+      currentPassword: oldPassword, 
+      newPassword 
+    });
   }
 
   /**

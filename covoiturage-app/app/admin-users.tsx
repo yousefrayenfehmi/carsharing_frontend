@@ -10,6 +10,8 @@ import {
   TextInput,
   Modal,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -234,38 +236,43 @@ export default function AdminUsers() {
         onRequestClose={() => setBlockModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Bloquer l'utilisateur</Text>
-            <Text style={styles.modalSubtitle}>
-              {String(selectedUser?.firstName)} {String(selectedUser?.lastName)}
-            </Text>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardAvoidingView}
+          >
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Bloquer l'utilisateur</Text>
+              <Text style={styles.modalSubtitle}>
+                {String(selectedUser?.firstName)} {String(selectedUser?.lastName)}
+              </Text>
 
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Raison du blocage..."
-              placeholderTextColor={Colors.text.light}
-              value={blockReason}
-              onChangeText={setBlockReason}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Raison du blocage..."
+                placeholderTextColor={Colors.text.light}
+                value={blockReason}
+                onChangeText={setBlockReason}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setBlockModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Annuler</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.confirmButton]}
-                onPress={confirmBlockUser}
-              >
-                <Text style={styles.confirmButtonText}>Bloquer</Text>
-              </TouchableOpacity>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setBlockModalVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.confirmButton]}
+                  onPress={confirmBlockUser}
+                >
+                  <Text style={styles.confirmButtonText}>Bloquer</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </View>
@@ -276,6 +283,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,

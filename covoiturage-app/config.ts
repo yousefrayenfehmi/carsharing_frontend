@@ -27,14 +27,15 @@
 
 // Lecture des variables d'environnement (fichier .env)
 const ENV_API_URL = process.env.EXPO_PUBLIC_API_URL;
-const ENV_USE_PRODUCTION = process.env.EXPO_PUBLIC_USE_PRODUCTION === 'true';
+const ENV_USE_PRODUCTION = process.env.EXPO_PUBLIC_USE_PRODUCTION;
 const ENV_LOCAL_IP = process.env.EXPO_PUBLIC_LOCAL_IP;
 const ENV_BACKEND_PORT = process.env.EXPO_PUBLIC_BACKEND_PORT;
-const ENV_USE_LOCAL_IP = process.env.EXPO_PUBLIC_USE_LOCAL_IP === 'true';
+const ENV_USE_LOCAL_IP = process.env.EXPO_PUBLIC_USE_LOCAL_IP;
 
 // ⚠️ VALEURS PAR DÉFAUT (utilisées si .env n'existe pas)
-export const USE_PRODUCTION = ENV_USE_PRODUCTION ?? true; // true = backend production, false = backend local
-export const USE_LOCAL_IP = ENV_USE_LOCAL_IP ?? false; // true = appareil physique, false = émulateur (ignoré si USE_PRODUCTION = true)
+// Si la variable n'est pas définie OU vaut 'true', on utilise le mode production
+export const USE_PRODUCTION = ENV_USE_PRODUCTION !== 'false'; // true = backend production, false = backend local
+export const USE_LOCAL_IP = ENV_USE_LOCAL_IP === 'true'; // true = appareil physique, false = émulateur (ignoré si USE_PRODUCTION = true)
 export const LOCAL_IP = ENV_LOCAL_IP ?? '192.168.1.14'; // Votre IP Wi-Fi (utilisé uniquement en mode local)
 export const BACKEND_PORT = parseInt(ENV_BACKEND_PORT ?? '3000'); // Port du backend local
 

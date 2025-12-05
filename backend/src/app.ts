@@ -29,9 +29,13 @@ const createApp = (): Application => {
   // Helmet pour sécuriser les headers HTTP
   app.use(helmet());
 
-  // CORS - Configuration pour autoriser le frontend
+  // CORS - Configuration pour autoriser le frontend et les apps mobiles
+  // Pour les apps mobiles React Native/Expo, on autorise toutes les origines
+  // car elles n'ont pas de domaine fixe comme les apps web
   const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:8081',
+    origin: process.env.FRONTEND_URL === '*' || !process.env.FRONTEND_URL
+      ? true // Autoriser toutes les origines pour les apps mobiles
+      : process.env.FRONTEND_URL || 'http://localhost:8081',
     credentials: true,
     optionsSuccessStatus: 200,
   };

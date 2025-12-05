@@ -17,6 +17,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 
 type TabType = 'pending' | 'accepted' | 'rejected';
@@ -385,10 +387,17 @@ export default function NegotiationsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Content */}
-      <ScrollView
-        style={styles.content}
-        refreshControl={
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        {/* Content */}
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
@@ -409,12 +418,17 @@ export default function NegotiationsScreen() {
           negotiations.map(renderNegotiationCard)
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: Colors.background.light,
+  },
+  keyboardAvoidingView: {
     flex: 1,
     backgroundColor: Colors.background.light,
   },
@@ -474,6 +488,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 16,
   },
   loadingContainer: {

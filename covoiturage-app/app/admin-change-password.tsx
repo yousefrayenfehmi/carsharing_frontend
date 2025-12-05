@@ -6,16 +6,21 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { adminService } from '../services/admin.service';
 import { Colors } from '../constants/colors';
+import { CustomAlert } from '../components/custom-alert';
+import { Toast } from '../components/toast';
+import { useToast } from '../hooks/use-toast';
 
 export default function AdminChangePassword() {
   const router = useRouter();
+  const { toast, showSuccess, showError, hideToast } = useToast();
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -23,45 +28,81 @@ export default function AdminChangePassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  }>({
+    visible: false,
+    type: 'info',
+    title: '',
+    message: '',
+  });
 
   const handleChangePassword = async () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      setAlertConfig({
+        visible: true,
+        type: 'warning',
+        title: 'Attention',
+        message: 'Veuillez remplir tous les champs',
+        onConfirm: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+      });
       return;
     }
 
-    if (newPassword.length < 6) {
-      Alert.alert('Erreur', 'Le nouveau mot de passe doit contenir au moins 6 caractères');
+    if (newPassword.length < 8) {
+      setAlertConfig({
+        visible: true,
+        type: 'warning',
+        title: 'Mot de passe trop court',
+        message: 'Le nouveau mot de passe doit contenir au moins 8 caractères',
+        onConfirm: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+      });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas');
+      setAlertConfig({
+        visible: true,
+        type: 'error',
+        title: 'Erreur',
+        message: 'Les mots de passe ne correspondent pas',
+        onConfirm: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+      });
       return;
     }
 
     try {
       setLoading(true);
       await adminService.changePassword(oldPassword, newPassword);
-      Alert.alert(
-        'Succès',
-        'Mot de passe modifié avec succès',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      
       // Réinitialiser les champs
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      
+      setAlertConfig({
+        visible: true,
+        type: 'success',
+        title: 'Succès !',
+        message: 'Votre mot de passe a été modifié avec succès',
+        onConfirm: () => {
+          setAlertConfig(prev => ({ ...prev, visible: false }));
+          router.back();
+        },
+      });
     } catch (error: any) {
-      Alert.alert(
-        'Erreur',
-        error.response?.data?.message || 'Impossible de changer le mot de passe'
-      );
+      const errorMessage = error.response?.data?.message || 'Impossible de changer le mot de passe';
+      setAlertConfig({
+        visible: true,
+        type: 'error',
+        title: 'Erreur',
+        message: errorMessage,
+        onConfirm: () => setAlertConfig(prev => ({ ...prev, visible: false })),
+      });
     } finally {
       setLoading(false);
     }
@@ -77,7 +118,16 @@ export default function AdminChangePassword() {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.iconContainer}>
           <Ionicons name="key" size={64} color={Colors.primary} />
         </View>
@@ -167,11 +217,11 @@ export default function AdminChangePassword() {
             <Text style={styles.requirementsTitle}>Exigences du mot de passe:</Text>
             <View style={styles.requirementItem}>
               <Ionicons
-                name={newPassword.length >= 6 ? 'checkmark-circle' : 'ellipse-outline'}
+                name={newPassword.length >= 8 ? 'checkmark-circle' : 'ellipse-outline'}
                 size={16}
-                color={newPassword.length >= 6 ? Colors.success : Colors.text.light}
+                color={newPassword.length >= 8 ? Colors.success : Colors.text.light}
               />
-              <Text style={styles.requirementText}>Au moins 6 caractères</Text>
+              <Text style={styles.requirementText}>Au moins 8 caractères</Text>
             </View>
             <View style={styles.requirementItem}>
               <Ionicons
@@ -206,6 +256,25 @@ export default function AdminChangePassword() {
           </Text>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Custom Alert */}
+      <CustomAlert
+        visible={alertConfig.visible}
+        type={alertConfig.type}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        confirmText="OK"
+        onConfirm={alertConfig.onConfirm}
+      />
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </View>
   );
 }
@@ -213,7 +282,10 @@ export default function AdminChangePassword() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.background.light,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -222,7 +294,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.background.white,
   },
   backButton: {
     padding: 8,
@@ -237,6 +309,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 16,
   },
   iconContainer: {
@@ -250,12 +324,12 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
   card: {
-    backgroundColor: Colors.card,
+    backgroundColor: Colors.background.white,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.border.light,
   },
   sectionTitle: {
     fontSize: 18,
@@ -275,11 +349,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.background.light,
     borderRadius: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.border.light,
   },
   inputIcon: {
     marginRight: 8,
@@ -294,7 +368,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   passwordRequirements: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.background.light,
     padding: 16,
     borderRadius: 8,
     marginBottom: 20,

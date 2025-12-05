@@ -14,6 +14,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -53,27 +55,42 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
  * Obtenir le push token Expo
  */
 export const getPushToken = async (): Promise<string | null> => {
+  console.log('🔍 Début getPushToken...');
+  console.log('📱 Device.isDevice:', Device.isDevice);
+  console.log('📱 Platform.OS:', Platform.OS);
+
   if (!Device.isDevice) {
     console.log('⚠️ Les notifications push ne fonctionnent que sur un appareil physique');
+    console.log('⚠️ Notifications push non disponibles (Expo Go)');
     return null;
   }
 
   try {
+    console.log('🔍 Récupération du projectId...');
+    console.log('📦 Constants.expoConfig:', Constants.expoConfig ? 'Existe' : 'N\'existe pas');
+    console.log('📦 Constants.expoConfig?.extra:', Constants.expoConfig?.extra ? 'Existe' : 'N\'existe pas');
+    console.log('📦 Constants.expoConfig?.extra?.eas:', Constants.expoConfig?.extra?.eas ? 'Existe' : 'N\'existe pas');
+
     const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-    
+    console.log('🆔 Project ID trouvé:', projectId);
+
     if (!projectId) {
       console.error('❌ Project ID non trouvé dans app.json');
+      console.error('💡 Vérifiez que app.json contient: extra.eas.projectId');
       return null;
     }
 
+    console.log('🔑 Appel à getExpoPushTokenAsync avec projectId:', projectId);
     const token = await Notifications.getExpoPushTokenAsync({
       projectId,
     });
 
     console.log('📱 Push token obtenu:', token.data);
     return token.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erreur lors de l\'obtention du push token:', error);
+    console.error('❌ Message d\'erreur:', error.message);
+    console.error('❌ Stack:', error.stack);
     return null;
   }
 };
@@ -84,7 +101,7 @@ export const getPushToken = async (): Promise<string | null> => {
 export const registerPushToken = async (token: string): Promise<boolean> => {
   try {
     const deviceType = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
-    
+
     await api.post('/push-tokens', {
       token,
       deviceType,
